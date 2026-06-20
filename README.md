@@ -36,7 +36,7 @@ cp .env.example .env
 Dann in `.env`:
 
 ```
-GEMINI_API_KEY=dein_api_key_hier
+GOOGLE_API_KEY=dein_api_key_hier
 ```
 
 Den Key bekommst du kostenlos unter [aistudio.google.com](https://aistudio.google.com) → **Get API key**.
