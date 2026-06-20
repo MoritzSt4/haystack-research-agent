@@ -8,7 +8,7 @@ Ein Research-Agent gebaut mit [Haystack](https://haystack.deepset.ai/) und der [
 - [uv](https://astral.sh/uv) (Package Manager)
 - Gemini API Key → kostenlos unter [aistudio.google.com](https://aistudio.google.com)
 
-### uv installieren
+### uv installieren (Auf MacOS, aber gerne nochmal überprüfen)
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -18,7 +18,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ```bash
 # Repository klonen
-git clone https://github.com/DEIN-USERNAME/haystack-research-agent.git
+git clone https://github.com/MoritzSt4/haystack-research-agent.git
 cd haystack-research-agent
 
 # Abhängigkeiten installieren (erstellt automatisch ein .venv)
@@ -26,7 +26,7 @@ uv sync
 ```
 
 ## Konfiguration
-
+Die .env datei anlegen im selben ordner wie die main. Inhalt der .env aus .env.example kopieren.
 `.env.example` als `.env` kopieren und den eigenen API Key eintragen:
 
 ```bash
