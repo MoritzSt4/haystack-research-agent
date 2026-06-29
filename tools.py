@@ -4,6 +4,7 @@ from haystack.components.agents import Agent
 from haystack.components.generators.utils import print_streaming_chunk
 from haystack.tools import Tool
 import os
+from dotenv import load_dotenv
 
 # --- TOOLS (FUNKTIONEN) ---
 # openalex https://developers.openalex.org/api-reference/works
@@ -127,16 +128,3 @@ unpaywall_doi_tool = Tool(
     )
 
 # --- Agent---
-def create_research_agent(generator) -> Agent:
-    agent = Agent(
-        chat_generator=generator,
-        system_prompt=(
-            "You are an expert academic research assistant. "
-            "Your task is to help users find scientific literature, research papers, and check their Open Access availability. "
-            "Always use 'openalex_article_search' to find relevant papers based on the user's topic. "
-            "If you find a DOI, you can use 'unpaywall_doi_lookup' to gather more detailed open access links."
-        ),
-        tools=[openalex_search_tool,unpaywall_doi_tool],
-        streaming_callback=print_streaming_chunk,
-    )
-    return agent
