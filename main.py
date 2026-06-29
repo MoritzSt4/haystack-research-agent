@@ -19,7 +19,7 @@ def main():
     print(f"✓ GOOGLE_API_KEY geladen ({len(os.getenv('GOOGLE_API_KEY'))} Zeichen)")
     
     # 2. Initialisiere den Generator
-    generator = GoogleGenAIChatGenerator(model="gemini-2.5-flash")
+    generator = GoogleGenAIChatGenerator(model="gemini-2.5-flash-lite")
 
     # 3. Mini-Testanfrage (Setup-Check)
     print("Teste Verbindung zu Gemini...")
