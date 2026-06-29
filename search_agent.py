@@ -9,7 +9,15 @@ import os
 # --- TOOLS (FUNKTIONEN) ---
 # openalex https://developers.openalex.org/api-reference/works
 def openalex_article_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
-    """Searches OpenAlex for academic papers using full-text search."""
+    """
+    Finds academic papers and literature for a given research question or keywords.
+    Use this tool as the first step when you need to research a scientific topic or look for sources.
+    The results are automatically ranked by relevance (text similarity and citation count).
+    
+    :param query: The scientific terms, keywords, or full research question to search for. 
+                  You can use AND, OR, NOT and quotes for exact phrases (e.g., '"machine learning" AND cancer').
+    :param limit: Optional. How many papers to return. Default is 5. Max recommended is 20.
+    """
 
     USER_EMAIL = os.getenv("USER_EMAIL")
     url = f"https://api.openalex.org/works?search={query}&per_page={limit}&mailto={USER_EMAIL}"
@@ -121,20 +129,35 @@ def openalex_article_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
 
 # Tools für Haystack erstellen
 # 1. OpenAlex Tool Definition
+
 openalex_search_tool = Tool(
     function=openalex_article_search,
     name="openalex_article_search",
-    description="Searches OpenAlex for academic papers using full-text search. Returns the most relevant papers.",
+    description=(
+        "Finds academic papers and literature for a given research question or keywords. "
+        "Use this tool as the first step when you need to research a scientific topic or look for sources. "
+        "Returns rich bibliographic data including title, up to 5 authors, publication year, "
+        "journal, DOI, citation metrics (cited_by_count, fwci), a shortened abstract, and direct PDF links."
+    ),
     parameters={
-            "type": "object",
-            "properties": {
-                "query": {"type": "string", "description": "The research question or scientific terms to search for."},
-                "limit": {"type": "integer", "description": "Maximum number of papers to return (default is 5)."}
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": "string", 
+                "description": (
+                    "The scientific terms, keywords, or full research question to search for. "
+                    "Supports boolean operators like AND, OR, NOT and quotes for exact phrases "
+                    "(e.g., '\"machine learning\" AND cancer NOT mouse')."
+                )
             },
-            "required": ["query"]
-        }
-    )
-
+            "limit": {
+                "type": "integer", 
+                "description": "Optional. Maximum number of research papers to return. Default is 5. Max recommended is 20."
+            }
+        },
+        "required": ["query"]
+    }
+)
 #     # 2. Unpaywall DOI Tool Definition
 # unpaywall_doi_tool = Tool(
 #     function=unpaywall_doi_lookup,
