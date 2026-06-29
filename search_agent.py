@@ -4,14 +4,14 @@ from haystack.components.agents import Agent
 from haystack.components.generators.utils import print_streaming_chunk
 from haystack.tools import Tool
 from dotenv import load_dotenv
-
-load_dotenv()
-USER_EMAIL="emma.fantasias@gmail.com"
+import os
 
 # --- TOOLS (FUNKTIONEN) ---
-
+# openalex https://developers.openalex.org/api-reference/works
 def openalex_article_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
     """Searches OpenAlex for academic papers using full-text search."""
+
+    USER_EMAIL = os.getenv("USER_EMAIL")
     url = f"https://api.openalex.org/works?search={query}&per_page={limit}&mailto={USER_EMAIL}"
     try:
         response = requests.get(url, timeout=10)
@@ -22,13 +22,43 @@ def openalex_article_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
 
         # filtern der Daten
         for work in data.get("results", []):
+            # 1. Autoren extrahieren (als saubere Liste von Namen für Zotero)
+            authors = []
+            for authorship in work.get("authorships", []):
+                author_name = authorship.get("author", {}).get("display_name")
+                if author_name:
+                    authors.append(author_name)
+            
+            # 2. Journal-Name extrahieren
+            primary_loc = work.get("primary_location") or {}
+            source = primary_loc.get("source") or {}
+            journal_name = source.get("display_name")
+            
+            # 3. Abstract aus dem Inverted Index rekonstruieren
+            abstract_string = ""
+            inverted_index = work.get("abstract_inverted_index")
+            if inverted_index:
+                # OpenAlex speichert: {"Wort": [Position1, Position2]} -> wir drehen es um zu einer Liste
+                word_positions = {}
+                for word, positions in inverted_index.items():
+                    for pos in positions:
+                        word_positions[pos] = word
+                # Sortieren nach Position und zusammenfügen
+                sorted_words = [word_positions[p] for p in sorted(word_positions.keys())]
+                abstract_string = " ".join(sorted_words)
+
+            # Das erweiterte, aber immer noch kompakte Ergebnis anhängen
             results.append({
-                "title": work.get("title"),
+                "title": work.get("display_name") or work.get("title"), # display_name ist oft sauberer formatiert
+                "authors": authors[:5], # maximal 5 Autoren
                 "publication_year": work.get("publication_year"),
+                "journal": journal_name,
                 "doi": work.get("doi"),
                 "relevance_score": work.get("relevance_score"),
                 "cited_by_count": work.get("cited_by_count"),
-                "primary_location": work.get("primary_location", {}).get("landing_page_url") if work.get("primary_location") else None,
+                "fwci": work.get("fwci"), # Qualitätsindikator
+                "abstract": abstract_string[:1000] if abstract_string else None, # Gekürzt auf ~200 Wörter 
+                "pdf_url": primary_loc.get("pdf_url"), # Direkter PDF Link, falls da
                 "type": work.get("type")
             })
         return results
