@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 # --- TOOLS (FUNKTIONEN) ---
 # openalex https://developers.openalex.org/api-reference/works
 def openalex_article_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
-    USER_EMAIL = os.getenv("USER_EMAIL")
-    url = f"https://api.openalex.org/works?search={query}&per_page={limit}&mailto={USER_EMAIL}"
+    OPENALEX_API_KEY = os.getenv("OPENALEX_API_KEY")
+    url = f"https://api.openalex.org/works?search={query}&per_page={limit}&api_key={OPENALEX_API_KEY}"
     try:
         response = requests.get(url, timeout=10)
         if response.status_code != 200:
