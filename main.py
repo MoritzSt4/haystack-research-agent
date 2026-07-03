@@ -1,11 +1,11 @@
 from haystack import Pipeline
 import os
 from dotenv import load_dotenv
-from haystack.dataclasses import ChatMessage
 from haystack_integrations.components.generators.google_genai import GoogleGenAIChatGenerator
 from haystack.components.generators.chat import OpenAIChatGenerator, FallbackChatGenerator
 from haystack.utils import Secret
 from agents import create_research_agent, create_reviewer_agent
+from coordinator import run_coordinator
 
 def main():
     load_dotenv()
@@ -47,10 +47,9 @@ def main():
 
     print(f"\n🚀 Starte Forschungs- und Bewertungsprozess für deine Anfrage...\n")
     
-    # 4. Pipeline starten mit der dynamischen Eingabe
-    haystack_message = ChatMessage.from_user(query)
-    pipeline.run(data={"searcher": {"messages": [haystack_message]}})
-    
+    # 4. Koordinator starten: sucht + bewertet mehrfach und liefert die besten Paper
+    run_coordinator(pipeline, query)
+
     print("\n✅ Prozess abgeschlossen.")
 
 if __name__ == "__main__":

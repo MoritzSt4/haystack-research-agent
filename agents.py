@@ -25,11 +25,14 @@ def create_reviewer_agent(generator) -> Agent:
             "older, heavily cited foundational papers.\n\n"
             
             "CRITICAL OUTPUT INSTRUCTIONS:\n"
+            "0. NEVER refuse. NEVER apologize. If a paper does not fit the topic, give it a LOW score "
+            "(1-3) with a short reason - but you MUST still return the JSON array.\n"
             "1. You MUST evaluate EVERY single paper listed in the chat history.\n"
-            "2. DO NOT write any introduction or conclusion. Output ONLY the Markdown table.\n\n"
-            "Format the table exactly like this:\n"
-            "| Title | Relevance Score (1-10) | Justification (Mention why based on fit & metrics) |\n"
-            "| :--- | :--- | :--- |"
+            "2. Return ONLY a valid JSON array, nothing else. No introduction, no conclusion, "
+            "no markdown code fences (do NOT wrap it in ```json).\n"
+            "3. 'score' MUST be an integer between 1 and 10.\n\n"
+            "The format must be exactly like this:\n"
+            '[{ "titel": "Example Title", "doi": "10.1234/xyz", "score": 8, "begruendung": "..." }]'
         ),
         streaming_callback=print_streaming_chunk,
     )
