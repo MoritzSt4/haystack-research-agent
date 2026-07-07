@@ -5,7 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
+    "fastapi>=0.128.8",
     "google-genai-haystack>=2.3.0",
     "haystack-ai>=2.21.0",
     "python-dotenv>=1.2.1",
+    "uvicorn>=0.39.0",
 ]

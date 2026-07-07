@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Academic Research Buddy</title>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: rgba(255, 255, 255, 0.05);
+    --card-border: rgba(255, 255, 255, 0.10);
+    --text: #e8ecf4;
+    --muted: #93a0b8;
+    --accent1: #6366f1;
+    --accent2: #22d3ee;
+    --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px 80px;
+  }
+
+  .container { width: 100%; max-width: 860px; }
+
+  /* ---------- Header ---------- */
+  header { text-align: center; margin-bottom: 40px; }
+
+  h1 {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .subtitle { color: var(--muted); margin-top: 8px; font-size: 15px; }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    padding: 12px 32px;
+    border-radius: 10px;
+    background: var(--accent1);
+    transition: background 0.15s ease;
+  }
+  .btn:hover { background: #4f52d9; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .center { display: flex; justify-content: center; margin-top: 28px; }
+
+  /* ---------- Karten ---------- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  /* ---------- Eingabe ---------- */
+  .query-row { display: flex; gap: 12px; }
+
+  #queryInput {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  #queryInput:focus { border-color: var(--accent1); }
+  #queryInput::placeholder { color: var(--muted); }
+
+  /* ---------- Forschungsfrage ---------- */
+  .query-card { padding: 16px 20px; }
+
+  .query-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .query-text { font-size: 16px; font-weight: 600; }
+
+  /* ---------- Status ---------- */
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 18px;
+  }
+
+  .dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--accent2);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.3; transform: scale(0.75); }
+  }
+
+  /* ---------- Agent-Panels ---------- */
+  .panel-title {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    color: var(--text);
+  }
+
+  .panel-title .badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    border: 1px solid var(--card-border);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+
+  .output { font-size: 14.5px; line-height: 1.65; overflow-x: auto; }
+  .output p { margin: 0 0 10px; }
+  .output h1, .output h2, .output h3 { margin: 14px 0 8px; font-size: 16px; }
+  .output ul, .output ol { margin: 0 0 10px 20px; }
+  .output a { color: var(--accent2); }
+  .output code { font-family: var(--mono); font-size: 13px; background: rgba(0,0,0,0.35); padding: 1px 5px; border-radius: 5px; }
+
+  .output table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 10px 0;
+    font-size: 13.5px;
+  }
+  .output th, .output td {
+    border: 1px solid var(--card-border);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .output th { background: rgba(99, 102, 241, 0.15); font-weight: 600; }
+  .output tr:nth-child(even) td { background: rgba(255, 255, 255, 0.03); }
+
+  /* ---------- Tool-Blöcke ---------- */
+  details.tool {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin: 8px 0;
+    font-size: 13px;
+  }
+  details.tool summary {
+    cursor: pointer;
+    color: var(--accent2);
+    font-family: var(--mono);
+    font-size: 12.5px;
+  }
+  details.tool pre {
+    margin-top: 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .error-box {
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    background: rgba(248, 113, 113, 0.1);
+    color: #fca5a5;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>Academic Research Buddy</h1>
+    <p class="subtitle">Wissenschaftliche Literatur finden und bewerten</p>
+  </header>
+
+  <!-- Schritt 1: Start -->
+  <section id="viewStart">
+    <div class="center">
+      <button class="btn" id="btnStart">Start</button>
+    </div>
+  </section>
+
+  <!-- Schritt 2: Eingabe -->
+  <section id="viewForm" class="hidden">
+    <div class="card">
+      <div class="query-row">
+        <input id="queryInput" type="text"
+               placeholder="Was möchtest du erforschen?" />
+        <button class="btn" id="btnSubmit">Absenden</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Schritt 3: Ausgabe -->
+  <section id="viewResults" class="hidden">
+    <div class="card query-card">
+      <div class="query-label">Forschungsfrage</div>
+      <div class="query-text" id="queryDisplay"></div>
+    </div>
+
+    <div class="status" id="statusRow">
+      <span class="dot"></span>
+      <span id="statusText">Recherche läuft …</span>
+    </div>
+
+    <div class="card hidden" id="panelSearcher">
+      <div class="panel-title">Recherche <span class="badge">Research Agent</span></div>
+      <div class="output" id="outSearcher"></div>
+    </div>
+
+    <div class="card hidden" id="panelReviewer">
+      <div class="panel-title">Bewertung <span class="badge">Reviewer Agent</span></div>
+      <div class="output" id="outReviewer"></div>
+    </div>
+
+    <div class="error-box hidden" id="errorBox"></div>
+
+    <div class="center hidden" id="restartRow">
+      <button class="btn" id="btnRestart">Erneut starten</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  const views = { start: $("viewStart"), form: $("viewForm"), results: $("viewResults") };
+
+  // Pro Agent eine Liste von Blöcken: {type:"md",text} | {type:"tool",name,args} | {type:"result",text}
+  const state = { searcher: [], reviewer: [] };
+  let eventSource = null;
+  let renderPending = false;
+
+  function show(view) {
+    Object.values(views).forEach((v) => v.classList.add("hidden"));
+    views[view].classList.remove("hidden");
+  }
+
+  function resetResults() {
+    state.searcher = [];
+    state.reviewer = [];
+    $("outSearcher").innerHTML = "";
+    $("outReviewer").innerHTML = "";
+    $("panelSearcher").classList.add("hidden");
+    $("panelReviewer").classList.add("hidden");
+    $("errorBox").classList.add("hidden");
+    $("restartRow").classList.add("hidden");
+    $("statusRow").classList.remove("hidden");
+  }
+
+  function lastBlock(agent, type) {
+    const blocks = state[agent];
+    const last = blocks[blocks.length - 1];
+    return last && last.type === type ? last : null;
+  }
+
+  function handleEvent(ev) {
+    const { agent, kind, text } = ev;
+
+    if (kind === "done") {
+      $("statusRow").classList.add("hidden");
+      $("restartRow").classList.remove("hidden");
+      closeStream();
+      return;
+    }
+    if (kind === "error") {
+      $("statusRow").classList.add("hidden");
+      const box = $("errorBox");
+      box.textContent = "Fehler: " + text;
+      box.classList.remove("hidden");
+      $("restartRow").classList.remove("hidden");
+      closeStream();
+      return;
+    }
+
+    if (agent === "reviewer") $("statusText").textContent = "Bewertung läuft …";
+
+    const blocks = state[agent];
+    if (kind === "tool_call") {
+      blocks.push({ type: "tool", name: text, args: "" });
+    } else if (kind === "tool_args") {
+      const tool = lastBlock(agent, "tool");
+      if (tool) tool.args += text; else blocks.push({ type: "tool", name: "Tool", args: text });
+    } else if (kind === "tool_result") {
+      blocks.push({ type: "result", text });
+    } else if (kind === "content") {
+      const md = lastBlock(agent, "md");
+      if (md) md.text += text; else blocks.push({ type: "md", text });
+    }
+
+    scheduleRender();
+  }
+
+  function scheduleRender() {
+    if (renderPending) return;
+    renderPending = true;
+    requestAnimationFrame(() => {
+      renderPending = false;
+      renderAgent("searcher", "panelSearcher", "outSearcher");
+      renderAgent("reviewer", "panelReviewer", "outReviewer");
+    });
+  }
+
+  function renderAgent(agent, panelId, outId) {
+    const blocks = state[agent];
+    if (!blocks.length) return;
+    $(panelId).classList.remove("hidden");
+
+    const container = $(outId);
+    container.innerHTML = "";
+    for (const block of blocks) {
+      if (block.type === "md") {
+        const div = document.createElement("div");
+        div.innerHTML = marked.parse(block.text);
+        container.appendChild(div);
+      } else {
+        const details = document.createElement("details");
+        details.className = "tool";
+        const summary = document.createElement("summary");
+        const pre = document.createElement("pre");
+        if (block.type === "tool") {
+          summary.textContent = "Tool-Aufruf: " + block.name;
+          pre.textContent = block.args;
+        } else {
+          summary.textContent = "Tool-Ergebnis";
+          pre.textContent = block.text;
+        }
+        details.appendChild(summary);
+        details.appendChild(pre);
+        container.appendChild(details);
+      }
+    }
+  }
+
+  function closeStream() {
+    if (eventSource) { eventSource.close(); eventSource = null; }
+  }
+
+  function startResearch() {
+    const query = $("queryInput").value.trim();
+    if (!query) { $("queryInput").focus(); return; }
+
+    resetResults();
+    show("results");
+    $("queryDisplay").textContent = query;
+    $("statusText").textContent = "Recherche läuft …";
+
+    eventSource = new EventSource("/api/research?query=" + encodeURIComponent(query));
+    eventSource.onmessage = (e) => handleEvent(JSON.parse(e.data));
+    eventSource.onerror = () => {
+      // Verbindung abgebrochen, ohne dass "done"/"error" kam
+      if (eventSource) {
+        handleEvent({ kind: "error", text: "Verbindung zum Server unterbrochen." });
+      }
+    };
+  }
+
+  $("btnStart").addEventListener("click", () => {
+    show("form");
+    $("queryInput").focus();
+  });
+
+  $("btnSubmit").addEventListener("click", startResearch);
+  $("queryInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") startResearch();
+  });
+
+  $("btnRestart").addEventListener("click", () => {
+    closeStream();
+    resetResults();
+    $("queryInput").value = "";
+    show("form");
+    $("queryInput").focus();
+  });
+</script>
+</body>
+</html>

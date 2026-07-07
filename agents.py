@@ -2,7 +2,7 @@ from haystack.components.agents import Agent
 from haystack.components.generators.utils import print_streaming_chunk
 from tools import openalex_search_tool, unpaywall_doi_tool
 
-def create_reviewer_agent(generator) -> Agent:
+def create_reviewer_agent(generator, streaming_callback=print_streaming_chunk) -> Agent:
     reviewer = Agent(
         chat_generator=generator,
         system_prompt=(
@@ -31,11 +31,11 @@ def create_reviewer_agent(generator) -> Agent:
             "| Title | Relevance Score (1-10) | Justification (Mention why based on fit & metrics) |\n"
             "| :--- | :--- | :--- |"
         ),
-        streaming_callback=print_streaming_chunk,
+        streaming_callback=streaming_callback,
     )
     return reviewer
 
-def create_research_agent(generator) -> Agent:
+def create_research_agent(generator, streaming_callback=print_streaming_chunk) -> Agent:
     agent = Agent(
         chat_generator=generator,
         system_prompt=(
@@ -47,7 +47,7 @@ def create_research_agent(generator) -> Agent:
             "Do not just summarize them. Provide the rich bibliographic data so the next agent in the pipeline can evaluate them."
         ),
         tools=[openalex_search_tool,unpaywall_doi_tool],
-        streaming_callback=print_streaming_chunk,
+        streaming_callback=streaming_callback,
     )
     return agent
 
