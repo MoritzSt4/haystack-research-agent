@@ -5,6 +5,8 @@ from haystack.dataclasses import ChatMessage
 
 def parse_reviews(text):
     """Zieht das JSON-Array aus der Reviewer-Antwort, auch wenn es in ```-Fences steckt."""
+    if not text:
+        return []
     match = re.search(r"\[.*\]", text, re.DOTALL)
     if not match:
         return []
