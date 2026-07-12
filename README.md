@@ -3,6 +3,8 @@
 
 A research agent built with [Haystack](https://haystack.deepset.ai/) and Google's [Gemini API](https://aistudio.google.com). The research agent searches OpenAlex for scientific literature, and a reviewer agent then evaluates the papers it finds.
 
+![Agent Image](assets/agent_image.png)
+
 The project can be used in two ways:
 
 - **Web interface** (`app.py`): starts a local server and opens the browser. You click **Start**, enter your research question, and the output is shown live and formatted (tables, tool calls).
