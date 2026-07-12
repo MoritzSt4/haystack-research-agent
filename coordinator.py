@@ -37,6 +37,7 @@ def run_coordinator(pipeline, query, threshold=6.0, max_rounds=3):
 
         if not reviews:
             print("Konnte die Bewertungen nicht als JSON lesen. Breche ab.")
+            print(f"--- Rohe Reviewer-Antwort ---\n{review_text}\n-----------------------------")
             break
 
         # Beste je Paper merken (Dedup ueber Runden)
@@ -53,13 +54,23 @@ def run_coordinator(pipeline, query, threshold=6.0, max_rounds=3):
             break
 
         if runde < max_rounds:
-            # Kritik der schwachen Paper nutzen, um die naechste Suche zu verfeinern
             schwach = [r["begruendung"] for r in reviews if r.get("score", 0) < threshold]
             kritik = " ".join(schwach)[:500]
-            current_query = (
-                f"{query}. Vorherige Ergebnisse waren zu unspezifisch. "
-                f"Kritik: {kritik}. Suche gezieltere, thematisch passendere Paper."
-            )
+
+            print(f"\nDie Ergebnisse waren eher schwach. Kritik: {kritik}")
+            eigene_anfrage = input(
+                "Moechtest du eine spezifischere Anfrage eingeben? "
+                "(Enter = automatisch verfeinern): "
+            ).strip()
+
+            if eigene_anfrage:
+                current_query = eigene_anfrage
+            else:
+                # Kritik der schwachen Paper nutzen, um die naechste Suche zu verfeinern
+                current_query = (
+                    f"{query}. Vorherige Ergebnisse waren zu unspezifisch. "
+                    f"Kritik: {kritik}. Suche gezieltere, thematisch passendere Paper."
+                )
 
     # Endergebnis: beste Paper ueber alle Runden, sortiert
     beste = sorted(best_by_id.values(), key=lambda r: r.get("score", 0), reverse=True)

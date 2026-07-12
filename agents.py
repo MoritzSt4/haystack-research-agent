@@ -47,7 +47,9 @@ def create_research_agent(generator) -> Agent:
             "If DOIs are available, you may use 'unpaywall_doi_lookup'.\n\n"
             "CRITICAL OUTPUT INSTRUCTION:\n"
             "You MUST present the found papers by listing their full details, including Title, Authors, Year, Journal, DOI, and especially the Abstract, Citations, and FWCI metrics if available. "
-            "Do not just summarize them. Provide the rich bibliographic data so the next agent in the pipeline can evaluate them."
+            "Do not just summarize them. Provide the rich bibliographic data so the next agent in the pipeline can evaluate them.\n"
+            "NEVER ask the user a follow-up question (e.g. 'Would you like me to search more?'). "
+            "Just present the paper list and stop - the next agent in the pipeline evaluates them automatically."
         ),
         tools=[openalex_search_tool,unpaywall_doi_tool],
         streaming_callback=print_streaming_chunk,
