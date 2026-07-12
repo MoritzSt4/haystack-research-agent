@@ -29,16 +29,28 @@ def run_coordinator(pipeline, query, threshold=6.0, max_rounds=3):
     for runde in range(1, max_rounds + 1):
         print(f"\n{'='*60}\n RUNDE {runde}: Suche zu: {current_query}\n{'='*60}")
 
-        msg = ChatMessage.from_user(current_query)
-        result = pipeline.run(
-            data={"searcher": {"messages": [msg]}},
-            include_outputs_from={"reviewer"},
-        )
-        review_text = result["reviewer"]["last_message"].text
-        reviews = parse_reviews(review_text)
+        reviews = []
+        review_text = None
+        for versuch in range(1, 3):  # 1 Normalversuch + 1 Retry bei leerer/kaputter Antwort
+            msg = ChatMessage.from_user(current_query)
+            result = pipeline.run(
+                data={"searcher": {"messages": [msg]}},
+                include_outputs_from={"reviewer"},
+            )
+            last_message = result["reviewer"]["last_message"]
+            review_text = last_message.text
+            reviews = parse_reviews(review_text)
+
+            if reviews:
+                break
+
+            print(
+                f"Reviewer-Antwort leer/ungueltig (Versuch {versuch}/2). "
+                f"Meta: {last_message.meta}"
+            )
 
         if not reviews:
-            print("Konnte die Bewertungen nicht als JSON lesen. Breche ab.")
+            print("Konnte die Bewertungen auch nach Retry nicht als JSON lesen. Breche ab.")
             print(f"--- Rohe Reviewer-Antwort ---\n{review_text}\n-----------------------------")
             break
 
