@@ -17,10 +17,18 @@ The project can be used in two ways:
 - Gemini API key → free at [aistudio.google.com](https://aistudio.google.com)
 - Groq API key → free at [console.groq.com](https://console.groq.com) (fallback model)
 
-### Installing uv (on macOS)
+### Installing uv (on macOS / Linux)
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### Installing uv (on Windows)
+
+In PowerShell:
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 ## Installation
@@ -33,6 +41,8 @@ cd haystack-research-agent
 # Install dependencies (automatically creates a .venv)
 uv sync
 ```
+
+Once uv is installed, all following commands (`uv sync`, `uv run ...`) are the same on macOS, Linux and Windows.
 
 ## Configuration
 
