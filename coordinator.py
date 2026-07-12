@@ -1,10 +1,12 @@
+import ast
 import re
 import json
 from haystack.dataclasses import ChatMessage
 
 
 def parse_reviews(text):
-    """Zieht das JSON-Array aus der Reviewer-Antwort, auch wenn es in ```-Fences steckt."""
+    """Zieht das JSON-Array aus der Reviewer-Antwort, auch wenn es in ```-Fences steckt
+    oder das LLM Python-Dict-Syntax (einfache Anfuehrungszeichen) statt echtem JSON liefert."""
     if not text:
         return []
     match = re.search(r"\[.*\]", text, re.DOTALL)
@@ -13,6 +15,10 @@ def parse_reviews(text):
     try:
         return json.loads(match.group(0))
     except json.JSONDecodeError:
+        pass
+    try:
+        return ast.literal_eval(match.group(0))
+    except (ValueError, SyntaxError):
         return []
 
 
