@@ -55,16 +55,11 @@ def make_streaming_callback(agent_name: str, events: queue.Queue):
 
 def build_pipeline(searcher_callback, reviewer_callback) -> Pipeline:
     """Identisch zum Aufbau in main.py, nur mit eigenen Streaming-Callbacks."""
-    generator_gemini = GoogleGenAIChatGenerator(model="gemini-2.5-flash-lite")
-    generator_groq = OpenAIChatGenerator(
-        api_key=Secret.from_env_var("GROQ_API_KEY"),
-        api_base_url="https://api.groq.com/openai/v1",
-        model="llama-3.3-70b-versatile",
-    )
-    generator = FallbackChatGenerator([generator_gemini, generator_groq])
+    generator_gemini = GoogleGenAIChatGenerator(model="gemini-2.5-flash")
 
-    research_agent = create_research_agent(generator, streaming_callback=searcher_callback)
-    reviewer_agent = create_reviewer_agent(generator, streaming_callback=reviewer_callback)
+
+    research_agent = create_research_agent(generator_gemini, streaming_callback=searcher_callback)
+    reviewer_agent = create_reviewer_agent(generator_gemini, streaming_callback=reviewer_callback)
 
     pipeline = Pipeline()
     pipeline.add_component("searcher", research_agent)

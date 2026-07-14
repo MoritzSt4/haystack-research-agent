@@ -11,15 +11,8 @@ def main():
     load_dotenv()
     
     # LLM initialisieren
-    generator_gemini = GoogleGenAIChatGenerator(model="gemini-2.5-flash-lite")
-    generator_groq = OpenAIChatGenerator(
-        api_key=Secret.from_env_var("GROQ_API_KEY"),
-        api_base_url= "https://api.groq.com/openai/v1",
-        model="llama-3.3-70b-versatile"
-    )
+    generator = GoogleGenAIChatGenerator(model="gemini-2.5-flash")
     
-    generators = [generator_gemini, generator_groq]
-    generator = FallbackChatGenerator(generators)
     # Agenten laden
     research_agent = create_research_agent(generator)
     reviewer_agent = create_reviewer_agent(generator)
