@@ -75,16 +75,19 @@ def unpaywall_doi_lookup(doi: str) -> Dict[str, Any]:
         best_oa_location = data.get("best_oa_location")
         oa_url = best_oa_location.get("url") if best_oa_location else None
         return {
-            "doi": data.get("doi"),
-            "title": data.get("title"),
-            "is_oa": data.get("is_oa"),
-            "oa_status": data.get("oa_status"), 
-            "best_oa_url": oa_url,
-            "publisher": data.get("publisher"),
-            "published_date": data.get("published_date")
+            "doi": data.get("doi", doi),
+            "title": data.get("title", ""),
+            "is_oa": data.get("is_oa", False),
+            "oa_status": data.get("oa_status", "unknown"),
+            "best_oa_url": oa_url or "",
+            "publisher": data.get("publisher", ""),
+            "published_date": data.get("published_date", "")
         }
+
     except Exception as e:
-        return {"error": f"Failed to connect to Unpaywall: {str(e)}"}
+        return {
+            "error": f"Failed to connect to Unpaywall: {str(e)}"
+        }
 
 
 # Tools für Haystack erstellen
