@@ -130,13 +130,14 @@ def research(query: str):
         Dann gaebe es keine Bewertung zu sehen. Deshalb pruefen wir nach jedem Lauf, ob der
         Reviewer wirklich Text produziert hat, und starten bei Bedarf bis zu 2x neu.
         """
-        try:
-            for versuch in range(1, 3):  # bis zu 2 Versuche
-                if versuch > 1:
-                    # Vor dem neuen Versuch die Anzeige leeren, damit sich die (leere)
-                    # erste Runde nicht mit der zweiten stapelt.
-                    events.put({"kind": "reset"})
+        letzter_fehler = None
+        for versuch in range(1, 3):  # bis zu 2 Versuche
+            if versuch > 1:
+                # Vor dem neuen Versuch die Anzeige leeren, damit sich die (leere/kaputte)
+                # erste Runde nicht mit der zweiten stapelt.
+                events.put({"kind": "reset"})
 
+            try:
                 pipeline = build_pipeline(
                     make_streaming_callback("searcher", events),
                     make_streaming_callback("reviewer", events),
@@ -158,14 +159,21 @@ def research(query: str):
                 if last and last.text and last.text.strip():
                     events.put({"kind": "done"})
                     return  # Erfolg -> fertig
+                # sonst: leere Antwort -> naechster Versuch
 
-            # Beide Versuche kamen leer zurueck -> klare Meldung statt stiller Leere.
-            events.put({
-                "kind": "error",
-                "text": "Der Reviewer hat keine Bewertung geliefert (leere Modell-Antwort). Bitte erneut starten.",
-            })
-        except Exception as e:
-            events.put({"kind": "error", "text": str(e)})
+            except Exception as e:
+                # Gemini/Groq liefern gelegentlich eine leere Nachricht, an der die Pipeline
+                # crasht ("ChatMessage must contain at least one ..."). Statt die ganze
+                # Anfrage abzubrechen, merken wir den Fehler und starten einen neuen Versuch.
+                letzter_fehler = str(e)
+
+        # Beide Versuche kamen leer zurueck oder sind gecrasht -> klare Meldung statt Stille.
+        events.put({
+            "kind": "error",
+            "text": (letzter_fehler
+                     or "Der Reviewer hat keine Bewertung geliefert (leere Modell-Antwort).")
+                    + " Bitte erneut starten.",
+        })
 
     threading.Thread(target=run_pipeline, daemon=True).start()
 
