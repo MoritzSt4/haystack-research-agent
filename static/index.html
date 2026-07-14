@@ -295,6 +295,16 @@
   function handleEvent(ev) {
     const { agent, kind, text } = ev;
 
+    // Vor einem automatischen Neuversuch (leere Bewertung) die Panels leeren,
+    // damit sich der alte, leere Durchlauf nicht mit dem neuen stapelt.
+    if (kind === "reset") {
+      state.searcher = [];
+      state.reviewer = [];
+      $("outSearcher").innerHTML = "";
+      $("outReviewer").innerHTML = "";
+      return;
+    }
+
     if (kind === "done") {
       $("statusRow").classList.add("hidden");
       $("restartRow").classList.remove("hidden");
@@ -308,6 +318,13 @@
       box.classList.remove("hidden");
       $("restartRow").classList.remove("hidden");
       closeStream();
+      return;
+    }
+
+    // Status-Meldung (z.B. "Bewertung wird erstellt …") waehrend der Reviewer noch rechnet,
+    // bevor das erste Token kommt. Gibt dem Nutzer Rueckmeldung in der Wartezeit.
+    if (kind === "status") {
+      $("statusText").textContent = text;
       return;
     }
 
@@ -339,6 +356,35 @@
     });
   }
 
+  // Markdown-Tabellen rendern nur, wenn sie als eigener Block beginnen (Leerzeile davor).
+  // Das Modell klebt die Tabelle aber manchmal an einen Einleitungssatz - entweder in
+  // der naechsten Zeile (ohne Leerzeile) oder sogar in derselben Zeile. Diese Funktion
+  // trennt die Tabelle sauber ab, damit sie zuverlaessig als Tabelle erkannt wird.
+  function normalizeTables(md) {
+    const lines = md.split("\n");
+    const out = [];
+    // Trennzeile einer Tabelle, z.B. "| :--- | :--- |" (nur |, -, :, Leerzeichen, mit -)
+    const isDelim = (s) => { const t = s.trim(); return t.includes("-") && /^[|\s:-]+$/.test(t); };
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      const next = lines[i + 1] || "";
+      // Fall 1: Tabellenkopf klebt in DERSELBEN Zeile am Text, naechste Zeile ist Trennzeile
+      if (!line.trim().startsWith("|") && line.includes("|") && isDelim(next)) {
+        const idx = line.indexOf("|");
+        const prosa = line.slice(0, idx).trimEnd();
+        if (prosa) { out.push(prosa); out.push(""); }  // Text raus, dann Leerzeile
+        line = line.slice(idx);  // ab hier ist die Tabellenzeile
+      }
+      // Fall 2: Tabellenzeile direkt nach einer Textzeile (ohne Leerzeile dazwischen)
+      const prev = out.length ? out[out.length - 1] : "";
+      if (line.trim().startsWith("|") && prev.trim() && !prev.trim().startsWith("|")) {
+        out.push("");  // Leerzeile vor die Tabelle
+      }
+      out.push(line);
+    }
+    return out.join("\n");
+  }
+
   function renderAgent(agent, panelId, outId) {
     const blocks = state[agent];
     if (!blocks.length) return;
@@ -349,7 +395,7 @@
     for (const block of blocks) {
       if (block.type === "md") {
         const div = document.createElement("div");
-        div.innerHTML = marked.parse(block.text);
+        div.innerHTML = marked.parse(normalizeTables(block.text));
         container.appendChild(div);
       } else {
         const details = document.createElement("details");
