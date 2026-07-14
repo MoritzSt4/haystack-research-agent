@@ -12,7 +12,7 @@ def main():
     load_dotenv()
     
     # Initialize the LLM
-    generator = GoogleGenAIChatGenerator(model="gemini-2.5-flash")
+    generator = GoogleGenAIChatGenerator(model="gemini-2.5-flash-lite")
     
     # Create the agents
     research_agent = create_research_agent(generator)

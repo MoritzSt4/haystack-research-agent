@@ -55,7 +55,7 @@ def make_streaming_callback(agent_name: str, events: queue.Queue):
 
 def build_pipeline(searcher_callback, reviewer_callback) -> Pipeline:
     """Build the same pipeline as in main.py, but with custom streaming callbacks."""
-    generator_gemini = GoogleGenAIChatGenerator(model="gemini-2.5-flash")
+    generator_gemini = GoogleGenAIChatGenerator(model="gemini-2.5-flash-lite")
 
 
     research_agent = create_research_agent(generator_gemini, streaming_callback=searcher_callback)
