@@ -3,7 +3,9 @@ from haystack.components.generators.utils import print_streaming_chunk
 from tools import openalex_search_tool, unpaywall_doi_tool
 
 
+# Create the research agent with a task-specific prompt and the available tools.
 def create_research_agent(generator, streaming_callback=print_streaming_chunk) -> Agent:
+    """Create an agent that searches for academic papers and collects their metadata."""
     agent = Agent(
         chat_generator=generator,
         system_prompt=(
@@ -19,7 +21,9 @@ def create_research_agent(generator, streaming_callback=print_streaming_chunk) -
     )
     return agent
 
+# Create the reviewer agent that evaluates the retrieved papers.
 def create_reviewer_agent(generator, streaming_callback=print_streaming_chunk) -> Agent:
+    """Create an agent that rates the retrieved papers by relevance and quality."""
     reviewer = Agent(
         chat_generator=generator,
         system_prompt=(

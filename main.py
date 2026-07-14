@@ -8,16 +8,17 @@ from haystack.utils import Secret
 from agents import create_research_agent, create_reviewer_agent
 
 def main():
+    """Run the research workflow from the terminal using the configured agents."""
     load_dotenv()
     
-    # LLM initialisieren
+    # Initialize the LLM
     generator = GoogleGenAIChatGenerator(model="gemini-2.5-flash")
     
-    # Agenten laden
+    # Create the agents
     research_agent = create_research_agent(generator)
     reviewer_agent = create_reviewer_agent(generator)
     
-    # Pipeline
+    # Build the pipeline
     pipeline = Pipeline()
     pipeline.add_component("searcher", research_agent)
     pipeline.add_component("reviewer", reviewer_agent)
@@ -25,22 +26,22 @@ def main():
     pipeline.connect("searcher.messages", "reviewer.messages")
     
 
-   # --- INTERAKTIVE EINGABE ---
+    # Interactive input in the terminal
     print("=" * 60)
     print(" 📚 ACADEMIC RESEARCH BUDDY ")
     print("=" * 60)
     
-    # Wartet im Terminal auf deine Eingabe
-    query = input("\n🔎 Was möchtest du erforschen? (Eingabe drücken): ")
+    # Wait for the user's research question
+    query = input("\n🔎 What would you like to research? (Press enter): ")
     
-    # Falls der User aus Versehen nichts eingegeben hat, abbrechen
+    # Stop if the user leaves the input empty
     if not query.strip():
         print("❌ Keine Suchanfrage eingegeben. Programm beendet.")
         return
 
-    print(f"\n🚀 Starte Forschungs- und Bewertungsprozess für deine Anfrage...\n")
+    print(f"\n🚀 Starting the research and review process for your request...\n")
     
-    # 4. Pipeline starten mit der dynamischen Eingabe
+    # Run the pipeline with the user's input
     haystack_message = ChatMessage.from_user(query)
     pipeline.run(data={"searcher": {"messages": [haystack_message]}})
     

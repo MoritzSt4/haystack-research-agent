@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -207,7 +207,7 @@
 
   <header>
     <h1>Academic Research Buddy</h1>
-    <p class="subtitle">Wissenschaftliche Literatur finden und bewerten</p>
+    <p class="subtitle">Find and evaluate scientific literature</p>
   </header>
 
   <!-- Schritt 1: Start -->
@@ -222,8 +222,8 @@
     <div class="card">
       <div class="query-row">
         <input id="queryInput" type="text"
-               placeholder="Was möchtest du erforschen?" />
-        <button class="btn" id="btnSubmit">Absenden</button>
+               placeholder="What would you like to research?" />
+        <button class="btn" id="btnSubmit">Submit</button>
       </div>
     </div>
   </section>
@@ -231,29 +231,29 @@
   <!-- Schritt 3: Ausgabe -->
   <section id="viewResults" class="hidden">
     <div class="card query-card">
-      <div class="query-label">Forschungsfrage</div>
+      <div class="query-label">Research question</div>
       <div class="query-text" id="queryDisplay"></div>
     </div>
 
     <div class="status" id="statusRow">
       <span class="dot"></span>
-      <span id="statusText">Recherche läuft …</span>
+      <span id="statusText">Research is running …</span>
     </div>
 
     <div class="card hidden" id="panelSearcher">
-      <div class="panel-title">Recherche <span class="badge">Research Agent</span></div>
+      <div class="panel-title">Research <span class="badge">Research Agent</span></div>
       <div class="output" id="outSearcher"></div>
     </div>
 
     <div class="card hidden" id="panelReviewer">
-      <div class="panel-title">Bewertung <span class="badge">Reviewer Agent</span></div>
+      <div class="panel-title">Review <span class="badge">Reviewer Agent</span></div>
       <div class="output" id="outReviewer"></div>
     </div>
 
     <div class="error-box hidden" id="errorBox"></div>
 
     <div class="center hidden" id="restartRow">
-      <button class="btn" id="btnRestart">Erneut starten</button>
+      <button class="btn" id="btnRestart">Start again</button>
     </div>
   </section>
 
@@ -304,14 +304,14 @@
     if (kind === "error") {
       $("statusRow").classList.add("hidden");
       const box = $("errorBox");
-      box.textContent = "Fehler: " + text;
+      box.textContent = "Error: " + text;
       box.classList.remove("hidden");
       $("restartRow").classList.remove("hidden");
       closeStream();
       return;
     }
 
-    if (agent === "reviewer") $("statusText").textContent = "Bewertung läuft …";
+    if (agent === "reviewer") $("statusText").textContent = "Review is running …";
 
     const blocks = state[agent];
     if (kind === "tool_call") {
@@ -360,7 +360,7 @@
           summary.textContent = "Tool-Aufruf: " + block.name;
           pre.textContent = block.args;
         } else {
-          summary.textContent = "Tool-Ergebnis";
+          summary.textContent = "Tool result";
           pre.textContent = block.text;
         }
         details.appendChild(summary);
@@ -381,14 +381,14 @@
     resetResults();
     show("results");
     $("queryDisplay").textContent = query;
-    $("statusText").textContent = "Recherche läuft …";
+    $("statusText").textContent = "Research is running …";
 
     eventSource = new EventSource("/api/research?query=" + encodeURIComponent(query));
     eventSource.onmessage = (e) => handleEvent(JSON.parse(e.data));
     eventSource.onerror = () => {
-      // Verbindung abgebrochen, ohne dass "done"/"error" kam
+      // Connection was interrupted before a done/error message arrived.
       if (eventSource) {
-        handleEvent({ kind: "error", text: "Verbindung zum Server unterbrochen." });
+        handleEvent({ kind: "error", text: "Connection to the server was interrupted." });
       }
     };
   }

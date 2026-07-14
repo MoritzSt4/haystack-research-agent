@@ -1,10 +1,10 @@
 """
-Web-Frontend für den Academic Research Buddy.
+Web frontend for the Academic Research Buddy.
 
-Baut die gleiche Pipeline wie main.py, streamt die Agenten-Ausgabe aber
-per Server-Sent-Events (SSE) live in den Browser statt ins Terminal.
+This builds the same pipeline as main.py, but streams agent output live to the browser
+through Server-Sent Events (SSE) instead of the terminal.
 
-Starten mit:  uv run python app.py
+Run with: uv run python app.py
 """
 import json
 import queue
@@ -35,10 +35,10 @@ PORT = 8000
 
 
 def make_streaming_callback(agent_name: str, events: queue.Queue):
-    """Erzeugt einen Streaming-Callback, der Chunks als Events in die Queue legt
-    (gleiche Fälle wie haystacks print_streaming_chunk, nur ohne stdout)."""
+    """Create a streaming callback that sends chunks as events into the queue."""
 
     def callback(chunk):
+        """Forward agent output chunks to the event queue."""
         if chunk.tool_calls:
             for tool_call in chunk.tool_calls:
                 if chunk.start and tool_call.tool_name:
@@ -54,7 +54,7 @@ def make_streaming_callback(agent_name: str, events: queue.Queue):
 
 
 def build_pipeline(searcher_callback, reviewer_callback) -> Pipeline:
-    """Identisch zum Aufbau in main.py, nur mit eigenen Streaming-Callbacks."""
+    """Build the same pipeline as in main.py, but with custom streaming callbacks."""
     generator_gemini = GoogleGenAIChatGenerator(model="gemini-2.5-flash")
 
 
@@ -70,14 +70,17 @@ def build_pipeline(searcher_callback, reviewer_callback) -> Pipeline:
 
 @app.get("/")
 def index():
+    """Return the main HTML page for the web frontend."""
     return FileResponse(STATIC_DIR / "index.html")
 
 
 @app.get("/api/research")
 def research(query: str):
+    """Start the research workflow and stream its results to the browser."""
     events: queue.Queue = queue.Queue()
 
     def run_pipeline():
+        """Run the pipeline in a background thread and push events to the queue."""
         try:
             pipeline = build_pipeline(
                 make_streaming_callback("searcher", events),
@@ -92,6 +95,7 @@ def research(query: str):
     threading.Thread(target=run_pipeline, daemon=True).start()
 
     def event_stream():
+        """Yield SSE events until the pipeline finishes or fails."""
         while True:
             item = events.get()
             yield f"data: {json.dumps(item)}\n\n"

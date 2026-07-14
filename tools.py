@@ -6,9 +6,10 @@ from haystack.tools import Tool
 import os
 from dotenv import load_dotenv
 
-# --- TOOLS (FUNKTIONEN) ---
-# openalex https://developers.openalex.org/api-reference/works
+# --- TOOLS ---
+# OpenAlex API reference: https://developers.openalex.org/api-reference/works
 def openalex_article_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
+    """Search OpenAlex for academic papers and return a compact metadata summary."""
     OPENALEX_API_KEY = os.getenv("OPENALEX_API_KEY")
     url = f"https://api.openalex.org/works?search={query}&per_page={limit}&api_key={OPENALEX_API_KEY}"
     try:
@@ -18,34 +19,34 @@ def openalex_article_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
         data = response.json()
         results = []
 
-        # filtern der Daten
+        # Filter and normalize the API response
         for work in data.get("results", []):
-            # 1. Autoren extrahieren (als saubere Liste von Namen für Zotero)
+            # Extract author names as a clean list
             authors = []
             for authorship in work.get("authorships", []):
                 author_name = authorship.get("author", {}).get("display_name")
                 if author_name:
                     authors.append(author_name)
             
-            # 2. Journal-Name extrahieren
+            # Extract the journal name
             primary_loc = work.get("primary_location") or {}
             source = primary_loc.get("source") or {}
             journal_name = source.get("display_name")
             
-            # 3. Abstract aus dem Inverted Index rekonstruieren
+            # Rebuild the abstract from the inverted index
             abstract_string = ""
             inverted_index = work.get("abstract_inverted_index")
             if inverted_index:
-                # OpenAlex speichert: {"Wort": [Position1, Position2]} -> wir drehen es um zu einer Liste
+                # OpenAlex stores words as positions; rebuild them into a readable text
                 word_positions = {}
                 for word, positions in inverted_index.items():
                     for pos in positions:
                         word_positions[pos] = word
-                # Sortieren nach Position und zusammenfügen
+                # Sort by position and join the words
                 sorted_words = [word_positions[p] for p in sorted(word_positions.keys())]
                 abstract_string = " ".join(sorted_words)
 
-            # Das erweiterte, aber immer noch kompakte Ergebnis anhängen
+            # Add a compact result object with the most useful fields
             results.append({
                 "title": work.get("display_name") or work.get("title"), # display_name ist oft sauberer formatiert
                 "authors": authors[:5], # maximal 5 Autoren
@@ -54,9 +55,9 @@ def openalex_article_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
                 "doi": work.get("doi"),
                 "relevance_score": work.get("relevance_score"),
                 "cited_by_count": work.get("cited_by_count"),
-                "fwci": work.get("fwci"), # Qualitätsindikator
-                "abstract": abstract_string[:1000] if abstract_string else None, # Gekürzt auf ~200 Wörter 
-                "pdf_url": primary_loc.get("pdf_url"), # Direkter PDF Link, falls da
+                "fwci": work.get("fwci"), # Quality indicator
+                "abstract": abstract_string[:1000] if abstract_string else None, # Keep the abstract concise
+                "pdf_url": primary_loc.get("pdf_url"), # Direct PDF link if available
                 "type": work.get("type")
             })
         return results
@@ -65,6 +66,7 @@ def openalex_article_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
 
 # https://unpaywall.org/products/api  https://unpaywall.org/data-format
 def unpaywall_doi_lookup(doi: str) -> Dict[str, Any]:
+    """Look up a DOI in Unpaywall and return open-access metadata."""
     USER_EMAIL = os.getenv("USER_EMAIL")
     url = f"https://api.unpaywall.org/v2/{doi}?email={USER_EMAIL}"
     try:
@@ -90,7 +92,7 @@ def unpaywall_doi_lookup(doi: str) -> Dict[str, Any]:
         }
 
 
-# Tools für Haystack erstellen
+# Register the tools for the Haystack agents
 openalex_search_tool = Tool(
     function=openalex_article_search,
     name="openalex_article_search",
@@ -130,4 +132,4 @@ unpaywall_doi_tool = Tool(
         }
     )
 
-# --- Agent---
+
