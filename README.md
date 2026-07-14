@@ -15,7 +15,6 @@ The project can be used in two ways:
 - Python 3.10+
 - [uv](https://astral.sh/uv) (package manager)
 - Gemini API key → free at [aistudio.google.com](https://aistudio.google.com)
-- Groq API key → free at [console.groq.com](https://console.groq.com) (fallback model)
 
 ### Installing uv (on macOS / Linux)
 
@@ -55,7 +54,6 @@ OPENALEX_API_KEY=your_openalex_key_here
 ```
 
 - `GOOGLE_API_KEY` – free at [aistudio.google.com](https://aistudio.google.com) → **Get API key**.
-- `GROQ_API_KEY` – free at [console.groq.com](https://console.groq.com) → **API Keys**. Used for the fallback model in case Gemini is unavailable.
 - `OPENALEX_API_KEY` – free at  [openalex.org/settings/api](https://openalex.org/settings/api) → for the OpenAlex search.
 
 **Important: never push the API key to the Git repo, and keep it only in the `.env` file. (Check that the `.env` file is listed in the `.gitignore` file, so it doesn't get pushed to the repo. Also only ever use the API key in the code via the `.env` variable, never enter it directly.)**
@@ -118,10 +116,9 @@ The two agents are connected in the pipeline via `searcher.messages → reviewer
 
 ### Language models
 
-Both agents use a `FallbackChatGenerator`:
+Agent:
 
 - **Primary:** Google Gemini (`gemini-2.5-flash-lite`)
-- **Fallback:** Groq (`llama-3.3-70b-versatile`), used automatically if Gemini is unavailable.
 
 ### Tools (`tools.py`)
 
